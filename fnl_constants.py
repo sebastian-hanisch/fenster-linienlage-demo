@@ -57,8 +57,8 @@ PRESETS = {
                             "norm": "Leistungsdichte", "beta": 8.0, "seed": DEFAULT_SEED},
 }
 PRESET_HELP = {
-    "Zwei nahe Linien": "Zwei gleich starke Linien im Abstand von 1,5 Bins, Hann-Fenster: Mit dem Rechteck wären sie aufgelöst, mit Hann verschmelzen sie (Hauptkeule 1,5 Bins breit).",
-    "Schwache neben starker": "Eine Linie 55 dB unter der starken, 10 Bins entfernt, Rechteckfenster: Die Nebenkeulen der starken Linie decken sie zu; mit Hann oder Blackman erscheint sie.",
-    "Linie zwischen Bins": "Linie fast genau zwischen zwei Bins, Rechteckfenster, Linienhöhe: Der Gipfel liegt knapp 4 dB zu tief und die Spitze 0,5 Bin neben der Linie.",
+    "Zwei nahe Linien": "Zwei gleich starke Linien im Abstand von 1,5 Bins, Hann-Fenster: Mit dem Rechteck wären sie aufgelöst, mit Hann verschmelzen sie in diesem Beispiel (bei 1,5 Bins gelingt die Trennung mit Hann nur in einem Teil der Läufe; Hauptkeule bei −3 dB 1,44 Bins).",
+    "Schwache neben starker": "Eine Linie 55 dB unter der starken, 10,5 Bins entfernt, Rechteckfenster: Die Nebenkeulen der starken Linie decken sie zu; mit Hann oder Blackman erscheint sie.",
+    "Linie zwischen Bins": "Linie fast genau zwischen zwei Bins, Rechteckfenster, Linienhöhe: Ohne Auffüllen läge der Gipfel knapp 4 dB zu tief (mit dem hier geladenen Auffüllfaktor 8 liest man ihn fast richtig ab); die Spitze liegt 0,5 Bin neben der Linie.",
     "Steiler Hintergrund": "Steil abfallender Hintergrund mit 57 dB Spannweite, Rechteckfenster: Im Tal liegt das Spektrum weit über der wahren Dichte; mit Hann liegt es darauf.",
 }

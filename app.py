@@ -51,7 +51,7 @@ st.markdown(
     """
 Wer ein Signal endlich lang aufzeichnet, schneidet es ab; das **Fenster** bestimmt, wie. Es legt drei Dinge zugleich fest: wie dicht zwei **Linien** liegen dürfen
 (**Hauptkeule**), wie hoch die Täler bleiben (**Nebenkeulen**, Leckage) und wie viel eine Linie zwischen zwei **Bins** verliert (**Gipfelverlust**). **Auffüllen mit Nullen** ändert
-davon nichts. Die Lage einer Linie dagegen lässt sich aus drei Bins auf einen Bruchteil eines Bins schätzen.
+an den Fensterkennzahlen nichts. Die Lage einer Linie dagegen lässt sich aus drei Bins auf einen Bruchteil eines Bins schätzen.
 
 Dies ist die zweite Demo der Reihe „Spektral- und Wavelet-Analyse“, auf dem **Periodogramm** aufbauend; „Spectral Clustering“ ist etwas anderes. Alles ist **simuliert**: Lage und Stärke
 der Linien und die Dichte des Hintergrunds sind bekannt. Weiter unten: **🔬 Experimente**, **🚧 Wo die Annahmen enden** und **📐 Mathematische Formulierung**.
@@ -92,9 +92,9 @@ with st.sidebar:
     else:
         beta = float(st.session_state["beta_kept"])
     n = st.slider("Länge n der Folge", *bounds("n_slider"), step=C.N_STEP, key="n_slider", help="Anzahl der Messwerte.")
-    pad = st.select_slider("Auffüllfaktor", options=list(C.PAD_CHOICES), key="pad_select", help="Nullen anhängen: macht die Kurve glatter, ändert die Auflösung nicht.")
+    pad = st.select_slider("Auffüllfaktor", options=list(C.PAD_CHOICES), key="pad_select", help="Nullen anhängen: interpoliert die Kurve, ändert die Fensterkennzahlen nicht und liefert nicht mehr Information.")
     norm = st.selectbox("Normierung", list(C.NORMS), key="norm_select",
-                        help="Leistungsdichte (Σw²) ist für Rauschen richtig, Linienhöhe (Σw) für die Leistung einer Linie. Der Unterschied ist die Rauschbandbreite des Fensters.")
+                        help="Leistungsdichte (Σw²) ist für Rauschen richtig, Linienhöhe (Σw) für die Leistung einer Linie. Der fensterabhängige Unterschied ist die Rauschbandbreite des Fensters.")
     st.markdown("**Signal**")
     line = st.slider("Linie 1 (Bruchteil der Abtastrate)", *bounds("line_slider"), step=C.LINE_STEP, key="line_slider", format="%.4f",
                      help="Lage der ersten Linie; mal n ergibt die Lage in Bins.")
@@ -155,7 +155,7 @@ st.markdown("---")
 # --- Experimente ---------------------------------------------------------------------------------------------------------------------------
 
 st.subheader("🔬 Experimente")
-st.caption("Feste Zufallsströme (Seed 200000 und folgende), unabhängig von den Reglern außer dem Kaiser-Parameter β. Jede Zahl ist ein Anteil über zufällige Phasen und Lagen zum Gitter.")
+st.caption("Feste Zufallsströme (Seed 200000 und folgende), unabhängig von den Reglern außer dem Kaiser-Parameter β. Die Anteile gelten über zufällige Phasen und Lagen zum Gitter (Standardfehler 4 bis 5 Prozentpunkte).")
 exp = _experiments(float(beta))
 
 st.markdown("#### Die Fenster im Vergleich")
@@ -176,7 +176,7 @@ st.plotly_chart(build_resolution(exp["resolution"]), width="stretch", key="exp_r
 kind, text = ev.verdict_resolution_sweep(exp["resolution"])
 getattr(st, kind)(text)
 st.dataframe(pd.DataFrame([{"Abstand (Bins)": de(r["distance"], 1), **{nm: de(100 * r[nm], 0) + " %" for nm in C.WINDOWS}} for r in exp["weak"]]), hide_index=True, width="stretch")
-st.caption(f"Schwache Linie ({C.EXP_WEAK_REL_DB} dB) neben einer starken: Anteil der Läufe, in denen sie ihren Wert um 3 dB hebt. Das Flat-Top hat eine so breite Hauptkeule, dass es sie bei 3 Bins verschluckt.")
+st.caption(f"Schwache Linie ({C.EXP_WEAK_REL_DB} dB) neben einer starken: Anteil der Läufe, in denen sie ihren Wert um 3 dB gegen dasselbe Signal ohne sie hebt, bei ganzzahligem Abstand (Nullstelle des Rechtecks). Das Flat-Top hat eine so breite Hauptkeule, dass es sie bei 3 Bins verschluckt.")
 kind, text = ev.verdict_weak(exp["weak"])
 getattr(st, kind)(text)
 
@@ -196,7 +196,7 @@ kind, text = ev.verdict_estimators(exp["rmse"], exp["bias"])
 getattr(st, kind)(text)
 
 st.markdown("#### Das Abschneiden hat einen Preis")
-st.markdown("Das Rechteckfenster ist das Abschneiden der Fourier-Reihe: Die Teilsumme einer Rechteckschwingung schwingt am Sprung über, unabhängig davon, wie viele Terme man nimmt "
+st.markdown("Das Rechteckfenster ist das Abschneiden der Fourier-Reihe: Die Teilsumme einer Rechteckschwingung schwingt am Sprung über, ab etwa 50 Oberschwingungen praktisch unabhängig davon, wie viele Terme man nimmt "
             "(**Gibbs-Phänomen**). Sanftes Abschneiden mit Dreieckgewichten (Fejér) beseitigt das Überschwingen.")
 st.dataframe(pd.DataFrame([{"Oberschwingungen bis": r["m"], "Überschwingen, harte Teilsumme (%)": de(100 * r["rect"], 1),
                             "Überschwingen mit Fejér-Gewichten (%)": de(100 * max(r["fejer"], 0.0), 1)} for r in exp["gibbs"]]), hide_index=True, width="stretch")
@@ -213,7 +213,7 @@ st.markdown(
 | Annahme | Was passiert, wenn sie verletzt ist | Wer setzt an |
 |---|---|---|
 | **Zwei Linien, kein Rauschen** in den Auflösungsexperimenten | Mit Rauschen wird die Grenze unschärfer; mehr als zwei Linien sind nicht untersucht. | Unterraumverfahren |
-| **Die Streuung je Bin bleibt** | Kein Fenster senkt sie: sie ist so groß wie der Wert selbst. | Bartlett und Welch, Multitaper |
+| **Die Streuung je Bin bleibt** | Die relative Streuung (Std/Mittel = 1 bei Rauschen) senkt kein Fenster; im Leckage-Tal des Rechtecks ist sie sogar größer. | Bartlett und Welch, Multitaper |
 | **Schätzer fern von 0 und Nyquist** | Eine reelle Linie nahe 0 oder der halben Abtastrate sieht ihr Spiegelbild und wird verzerrt. | – |
 | **Eine Linie, weißes Rauschen** für die Schranke | Bei farbigem Rauschen oder mehreren Linien gilt die Schranke nicht in dieser Form. | AR-Spektrum, Unterraumverfahren |
 | **Stationär** | Wandert die Linie, verschmiert das Fenster sie. | Spektrogramm |
@@ -234,7 +234,7 @@ $c_w(\tau) = \sum_m w_m w_{m+\tau}$. Leckage ist Bias: der Erwartungswert ist di
 **Gipfelverlust** genau zwischen zwei Bins: $20\log_{10}\big|\sum w_m e^{-i\pi m/n}\big| / \sum w_m$; beim Rechteck $\to -3{,}92$ dB.
 
 **Lage aus drei Bins.** Mit $X_{-1}, X_0, X_{+1}$ um die Spitze: Jacobsen $\delta = \mathrm{Re}\,\dfrac{X_{-1} - X_{+1}}{2X_0 - X_{-1} - X_{+1}}$, Candan mit dem Faktor $\tan(\pi/n)/(\pi/n)$,
-Quinn und Rife aus den Verhältnissen der Beträge. **Schranke** (reelle Linie, weißes Rauschen): $\sigma_f \ge \sqrt{3/(\pi^2\,\mathrm{SNR}\,n(n^2-1))}$ in Bruchteilen der Abtastrate, SNR $= A^2/(2\sigma^2)$.
+Rife aus den Verhältnissen der Beträge, Quinn aus den Realteilen der Verhältnisse $X_{\pm 1}/X_0$. **Schranke** (reelle Linie, weißes Rauschen): $\sigma_f \ge \sqrt{3/(\pi^2\,\mathrm{SNR}\,n(n^2-1))}$ in Bruchteilen der Abtastrate, SNR $= A^2/(2\sigma^2)$.
 
 **Gibbs.** Die Teilsumme $\frac{4}{\pi}\sum_{k\ \mathrm{ungerade}\le M}\frac{\sin k\theta}{k}$ überschwingt um $\frac{2}{\pi}\mathrm{Si}(\pi) - 1 \approx 0{,}179$ der Amplitude.
 

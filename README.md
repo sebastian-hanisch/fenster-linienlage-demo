@@ -12,8 +12,9 @@ Auflösung, Leckage, Gipfelverlust und die Schätzung der Linienlage werden gege
 ## Warum dieses Problem
 
 Das Periodogramm der Vorgängerdemo hat zwei Mängel: Die Täler liegen bei hohem Dynamikumfang weit über der wahren Dichte (Leckage des Rechteckfensters), und eine Linie zwischen zwei Bins
-erscheint zu niedrig und an der falschen Stelle. Das Fenster behebt die Leckage und kostet Auflösung; Auffüllen mit Nullen macht die Kurve glatter, gewinnt aber nichts; die Lage der Linie
-lässt sich aus drei Bins auf einen Bruchteil eines Bins schätzen. Die Streuung je Bin bleibt dabei unverändert (Thema der Folgedemos).
+erscheint zu niedrig und an der falschen Stelle. Das Fenster senkt die Leckage (je nach Fenster im Tal bis unter 0,1 dB) und kostet Auflösung; Auffüllen mit Nullen ändert die Fensterkennzahlen nicht und liefert nicht mehr Information,
+interpoliert aber das Spektrum: Gipfelhöhe und -lage lassen sich besser ablesen, und zwei Linien nahe der Grenze erscheinen ab Faktor 2 bis 4 öfter getrennt (darüber hinaus ändert sich nichts); die Lage der Linie
+lässt sich aus drei Bins auf einen Bruchteil eines Bins schätzen. Die relative Streuung je Bin (Std/Mittel = 1 bei Rauschen) senkt kein Fenster; im Leckage-Tal des Rechtecks ist sie sogar größer (Thema der Folgedemos).
 
 ## Modell
 
@@ -27,19 +28,19 @@ Parabel, Quinn 1, Jacobsen, Rife, Candan) mit der Cramér-Rao-Schranke und dem f
 
 ## Befunde (gemessen, keine Behauptungen)
 
-Alle Zahlen stehen in `tests/test_claims.py` (Anteile bei 100 bis 150 Läufen: Standardfehler etwa 4 Prozentpunkte).
+Alle Zahlen stehen in `tests/test_claims.py` (Anteile bei 100 bis 150 Läufen: Standardfehler 4 bis 5 Prozentpunkte; nicht alle Zahlen sind Anteile).
 
 | Frage | Befund |
 |---|---|
 | Kennzahlen der Fenster (n = 256): Rauschbandbreite / Hauptkeule bei −3 dB / höchste Nebenkeule / Gipfelverlust bei ½ Bin | Rechteck 1,00 / 0,89 Bins / −13,3 dB / −3,92 dB; Hann 1,50 / 1,44 / −31,5 / −1,42; Hamming 1,36 / 1,30 / −42,7 / −1,75; Blackman 1,73 / 1,64 / −58,1 / −1,10; Kaiser (β = 8) 1,67 / 1,59 / −58,7 / −1,18; Flat-Top 3,77 / 3,73 / −92,7 / −0,01. |
-| Was kostet die Normierung auf Linienhöhe statt Leistungsdichte? | Der Unterschied ist die Rauschbandbreite in dB: Hann 1,76 dB, Blackman 2,37 dB, Flat-Top 5,76 dB. |
+| Was kostet die Normierung auf Linienhöhe statt Leistungsdichte? | Der fensterabhängige Unterschied der beiden Normierungen ist die Rauschbandbreite in dB (gegenüber dem Rechteck): Hann 1,76 dB, Blackman 2,37 dB, Flat-Top 5,76 dB. |
 | Wie hoch liegt der Mittelwert im Tal (Hintergrund „Steil“, bei 0,49 der Abtastrate)? | Rechteck um 17,9 / 11,9 / 6,7 dB über der wahren Dichte bei n = 128 / 512 / 2048; Hamming 3,0 / 0,9 / 0,2 dB; Hann, Blackman, Kaiser, Flat-Top unter 0,1 dB. |
 | Wie dicht dürfen zwei gleich starke Linien liegen (aufgelöst = zwei Gipfel mit mindestens 10 % Prominenz)? | Bei 1,0 Bin lösen das Rechteck in rund 53 %, Hann in 1 %, Blackman und Kaiser in 0 % der Läufe auf; bei 1,5 Bins 100 / 48 / 40 / 42 %; bei 2,0 Bins 100 / 77 / 61 / 65 %; ab 2,5 Bins alle 100 %. |
 | Hilft Auffüllen mit Nullen (Rechteck, 1,0 Bin Abstand)? | Der Anteil steigt von 0 % ohne Auffüllen auf 53 % bei Faktor 2 und 54 % ab Faktor 4; mehr ändert nichts. Die Grenze setzt das Fenster. |
-| Sieht man eine schwache Linie (−40 dB) neben einer starken? | Mit dem Rechteck in rund 71 / 91 / 98 % der Läufe bei 3 / 8 / 12 Bins Abstand; Hann, Hamming, Blackman und Kaiser in 100 %; das Flat-Top bei 3 Bins gar nicht (0 %), ab 5 Bins immer. |
+| Sieht man eine schwache Linie (−40 dB) neben einer starken? | Bei ganzzahligem Abstand (Nullstelle des Rechtecks) sieht das Rechteck sie in rund 71 / 91 / 98 % der Läufe bei 3 / 8 / 12 Bins; Hann, Hamming, Blackman und Kaiser in 100 %; das Flat-Top bei 3 Bins gar nicht (0 %), ab 5 Bins in 100 %. Bei nicht ganzzahligem Abstand (3,5 bis 10,5 Bins, 300 Läufe) sieht das Rechteck sie in rund 0 %; Hann nur bei 3,5 Bins unvollständig (56 %), Hamming bei 3,5 bis 6,5 Bins in 55 bis 66 %, Blackman und Kaiser in 100 %, das Flat-Top ab 4,5 Bins in 100 %. |
 | Wie weit liegt die Spitze allein daneben, wie die Interpolatoren (ohne Rauschen, n = 256)? | Spitze bis 0,50 Bin; Parabel bis 0,17; Quinn 1 und Rife bis 0,003; Jacobsen und Candan unter 0,001. |
-| Wie nahe kommen sie der Cramér-Rao-Schranke (RMSE geteilt durch Schranke, 15 dB je Abtastwert, n = 256 / 1024)? | Spitze 49 / 98; Parabel 20 / 40; Rife 3,8 / 3,5; Jacobsen und Candan 1,6; Quinn 1 1,3; feines Maximum 1,1 / 1,07. |
-| Gibbs-Phänomen | Das Überschwingen der Teilsumme einer Rechteckschwingung beträgt 17,9 % der Amplitude, unabhängig von der Zahl der Oberschwingungen (Theorie 17,9 %); mit Fejér-Gewichten gibt es keines. |
+| Wie nahe kommen sie der Cramér-Rao-Schranke (RMSE geteilt durch Schranke, 15 dB je Abtastwert, n = 256 / 1024)? | Spitze 49 / 98; Parabel 20 / 40; Rife 3,8 / 3,5; Jacobsen und Candan 1,6; Quinn 1 1,3; feines Maximum 1,1 (beide Längen); die Zahlen sind auf rund 4 % genau (300 Läufe). |
+| Gibbs-Phänomen | Das Überschwingen der Teilsumme einer Rechteckschwingung beträgt rund 17,9 % der Amplitude und hängt ab etwa 50 Oberschwingungen nicht mehr von deren Zahl ab (bei 9: 18,2 %; Theorie 17,9 %); mit Fejér-Gewichten gibt es keines. |
 
 ## Ehrliche Grenzen
 
@@ -49,7 +50,7 @@ Alle Zahlen stehen in `tests/test_claims.py` (Anteile bei 100 bis 150 Läufen: S
   Nyquist; bei farbigem Rauschen oder mehreren Linien nicht in dieser Form.
 - **Das feine Maximum** ist die Gitterverfeinerung des Periodogramms (32-fach, Parabel), keine unabhängige ML-Schätzung.
 - **Eine Linie genau auf einem Gitterpunkt liegt in der Nullstelle des Rechtecks:** In den Presets liegt die schwache Linie deshalb nicht auf einem ganzzahligen Abstand (10,5 statt 10 Bins).
-- **Die Streuung je Bin bleibt:** kein Fenster senkt sie.
+- **Die Streuung je Bin bleibt:** die relative Streuung (Std/Mittel = 1 bei Rauschen) senkt kein Fenster; im Leckage-Tal des Rechtecks ist sie sogar größer.
 
 ## Verifikation
 

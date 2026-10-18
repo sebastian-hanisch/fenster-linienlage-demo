@@ -263,7 +263,7 @@ def verdict_resolution(a: Analysis) -> tuple[str, str]:
         return "success", (f"Die beiden Linien im Abstand von {de(s.gap, 2)} Bins erscheinen als **zwei Gipfel**; die Hauptkeule des Fensters „{s.window}“ ist "
                            f"{de(a.main_lobe, 2)} Bins breit, die höchste Nebenkeule liegt bei {de(a.sidelobe_db, 1)} dB.")
     return "warning", (f"Die beiden Linien im Abstand von {de(s.gap, 2)} Bins **verschmelzen**: Die Hauptkeule des Fensters „{s.window}“ ist {de(a.main_lobe, 2)} Bins breit, "
-                       f"Auffüllen mit Nullen ändert daran nichts.")
+                       f"mehr Auffüllen als Faktor 4 ändert daran nichts.")
 
 
 def verdict_weak_line(a: Analysis) -> tuple[str, str]:
@@ -287,7 +287,7 @@ def verdict_valley(rows: list[dict]) -> tuple[str, str]:
     rect = [r for r in rows if r["window"] == "Rechteck" and r["n"] == first][0]
     hann = [r for r in rows if r["window"] == "Hann" and r["n"] == first][0]
     return "success", (f"Bei n = {first} liegt der Erwartungswert im Tal mit dem Rechteck um {de(rect['bias_db'], 1)} dB über der wahren Dichte, mit Hann um {de(hann['bias_db'], 1)} dB: "
-                       "**das Fenster senkt die Leckage, nicht die Streuung.**")
+                       "**das Fenster senkt die Leckage.** Die relative Streuung je Bin misst dieses Experiment nicht.")
 
 
 def verdict_resolution_sweep(rows: list[dict]) -> tuple[str, str]:
@@ -305,8 +305,8 @@ def verdict_padding(rows: list[dict]) -> tuple[str, str]:
 
 def verdict_weak(rows: list[dict]) -> tuple[str, str]:
     r = [x for x in rows if x["distance"] == 8.0][0]
-    return "info", (f"Eine Linie 40 dB unter der starken, 8 Bins entfernt, hebt ihren Wert mit dem Rechteck in {de(100 * r['Rechteck'], 0)} % der Läufe um mindestens 3 dB, "
-                    f"mit Hann in {de(100 * r['Hann'], 0)} %.")
+    return "info", (f"Eine Linie 40 dB unter der starken, bei ganzzahligem Abstand von 8 Bins (Nullstelle des Rechtecks), hebt ihren Wert mit dem Rechteck in {de(100 * r['Rechteck'], 0)} % der Läufe um mindestens 3 dB, "
+                    f"mit Hann in {de(100 * r['Hann'], 0)} %; bei nicht ganzzahligem Abstand sieht das Rechteck sie in dieser Anordnung kaum.")
 
 
 def verdict_estimators(rows: list[dict], bias: list[dict]) -> tuple[str, str]:

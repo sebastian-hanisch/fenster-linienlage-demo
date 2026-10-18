@@ -105,6 +105,20 @@ def test_flat_top_swallows_a_weak_line_at_three_bins(weak):
     assert weak[3.0]["Flat-Top"] == 0.0 and weak[5.0]["Flat-Top"] == 1.0
 
 
+def test_weak_line_at_non_integer_distances_the_rectangle_does_not_see_it():
+    """README: bei nicht ganzzahligem Abstand (3,5 bis 10,5 Bins, 300 Läufe) sieht das Rechteck die schwache Linie in rund 0 %, Hann bei 3,5 Bins 56 %,
+    Hamming bei 3,5 bis 6,5 Bins 55 bis 66 %, Blackman und Kaiser 100 %, das Flat-Top ab 4,5 Bins 100 % (Gegenprobe zur Nullstelle bei ganzzahligem Abstand)."""
+    rows = {r["distance"]: r for r in ev.sweep_weak(distances=(3.5, 4.5, 5.5, 6.5, 8.5, 10.5), runs=300)}
+    for d, r in rows.items():
+        assert r["Rechteck"] < 0.03
+        assert r["Blackman"] == 1.0 and r["Kaiser"] == 1.0
+    assert 100 * rows[3.5]["Hann"] == pytest.approx(56, abs=8)
+    assert all(rows[d]["Hann"] == 1.0 for d in (4.5, 5.5, 6.5, 8.5, 10.5))
+    for d in (3.5, 4.5, 5.5, 6.5):
+        assert 50 <= 100 * rows[d]["Hamming"] <= 72
+    assert rows[3.5]["Flat-Top"] == 0.0 and all(rows[d]["Flat-Top"] == 1.0 for d in (4.5, 5.5, 6.5, 8.5, 10.5))
+
+
 def test_estimator_bias_without_noise(bias):
     assert bias["Spitze"]["max"] == pytest.approx(0.5, abs=1e-9)
     assert bias["Parabel"]["max"] == pytest.approx(0.17, abs=0.01)
@@ -131,10 +145,13 @@ def test_gibbs_overshoot_in_the_text():
     rows = {r["m"]: r for r in ev.gibbs_table()}
     for m in (49, 199, 999):
         assert 100 * rows[m]["rect"] == pytest.approx(17.9, abs=0.1)
+    assert 100 * rows[9]["rect"] == pytest.approx(18.2, abs=0.1)
     assert all(r["fejer"] <= 0.0 for r in rows.values())
 
 
 def test_preset_help_texts_quote_the_documented_numbers():
     assert C.PRESETS["Zwei nahe Linien"]["gap"] == 1.5 and C.PRESETS["Schwache neben starker"]["rel"] == -55 and C.PRESETS["Schwache neben starker"]["gap"] == 10.5
     assert C.PRESETS["Steiler Hintergrund"]["n"] == 128
+    assert C.PRESETS["Linie zwischen Bins"]["pad"] == 8 and "Auffüllfaktor 8" in C.PRESET_HELP["Linie zwischen Bins"]
+    assert "10,5 Bins" in C.PRESET_HELP["Schwache neben starker"]
     assert C.BACKGROUNDS["Steil"] and C.EXP_WEAK_REL_DB == -40
